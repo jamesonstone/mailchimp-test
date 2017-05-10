@@ -1,30 +1,33 @@
 "use strict";
-var fs = require('fs');
-var file = "./leadershipteam.csv";
+var fs = require( 'fs' ),
+	file = "./leadershipteam.csv",
+	stream = fs.createWriteStream( file );
 
 var AboutPage = {
-
 	/**
 	 * Navigates to About page
 	 */
 	get : function() {
-		browser.get( 'https://mailchimp.com/about/' );
+		browser.driver.get( 'https://mailchimp.com/about/' );
 	},
 
 	/**
-	 * Gets the leadership team by element
+	 * Gets the leadership team, munge the data, and writes to csv
 	 */
-	getLeadershipTeam : function() {
-		var leadership = browser.driver.findElements( by.css( '.bio_link' ) );
-		console.log(leadership.getText());
-		return leadership.getText();
+	writeLeadershipTeamToCsv : function() {
+		browser.driver.findElements( by.css( '.bio_link' ) ).then( function( text ) {
+			for( var i = 0; i < text.length; i++ ) {
+				var a, b;
 
-		// return browser.driver.findElements( by.css( '.bio_link' ) ).then( function( text ) {
-		// 	for(var i = 0; i < text.length; i++) {
-		// 		console.log(text[i].getText());
-		// 	}
-		// 	return text[11].getText();
-		// } );
+				text[ i ].getText().then( function( namePosition ) {
+					a = namePosition.replace( /\r?\n|\r/g, "," ) + ",";
+				} );
+				text[ i ].getAttribute( 'data-description' ).then( function( description ) {
+					b = description.replace( /\r?\n|\r/g, "," ) + "";
+					stream.write( a + b + '\n' );
+				} );
+			}
+		} );
 	}
 
 };
